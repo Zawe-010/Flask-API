@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Set up the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/flask_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Zawadi%402006#@localhost:5432/flask_api'
 
 # Disables events / tracks objects changes
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -33,5 +33,12 @@ class Sale(db.Model):
     quantity=db.Column(db.Integer,nullable=False)
     created_at=db.Column(db.DateTime,nullable=False)
 
+# User model
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
 
 

@@ -1,9 +1,13 @@
 from flask import Flask, jsonify, request
-from dbservice import Product, Sale, db, app
+from dbservice import Product, Sale, db, app, User
 from datetime import datetime
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 CORS(app)
+app.config["JWT_SECRET_KEY"]= "JBL@123"
+jwt = JWTManager(app)
 
 @app.route("/")
 def hello_world():
@@ -11,8 +15,77 @@ def hello_world():
     return jsonify(res), 200
 
 
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ("full_name", "email", "password")):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Check if user already exists
+    existing_user = db.session.execute(
+        db.select(User).filter_by(email=data["email"])
+    ).scalar()
+
+    if existing_user:
+        return jsonify({"error": "User already exists"}), 409
+
+    hashed_password = generate_password_hash(data["password"])
+
+    new_user = User(
+        full_name=data["full_name"],
+        email=data["email"],
+        password=hashed_password
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data or not all(k in data for k in ("email", "password")):
+        return jsonify({"error": "Missing email or password"}), 400
+
+    user = db.session.execute(
+        db.select(User).filter_by(email=data["email"])
+    ).scalar()
+
+    if not user or not check_password_hash(user.password, data["password"]):
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # Create a token and return to the user
+    token = create_access_token(identity=user.email)
+    return jsonify({
+        "message": "Login successful", 
+        "token":token,
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email
+        }
+    }), 200
+
+
+@app.route("/users", methods=["GET"])
+def list_users():
+    users = User.query.all()
+    return jsonify([
+        {"id": u.id, "full_name": u.full_name, "email": u.email}
+        for u in users
+    ]), 200
+
 @app.route("/api/products", methods = ["GET", "POST"])
+@jwt_required()
 def products():
+
+    email = get_jwt_identity()
+    print("Email =====", email)
+
     if request.method == "GET":
         products_list = Product.query.all()
         prods = []
@@ -29,14 +102,14 @@ def products():
     elif request.method == "POST":
         # Data will be received here as JSON , so we convert it to dictionary
         data = dict(request.get_json())
-        if "name" not in data.keys() or "bp" not in data.keys() or "sp" not in data.keys():
+        if "name" not in data.keys() or "buying_price" not in data.keys() or "selling_price" not in data.keys():
             error = {"error" : "Invalid keys"}
             return jsonify(error), 403
-        elif data["name"] == "" or data["bp"] == "" or data["sp"] == "":
+        elif data["name"] == "" or data["buying_price"] == "" or data["selling_price"] == "":
             error = {"error" : "Ensure all values are set"}
             return jsonify(error), 403
         else:
-            new_product = Product(name = data["name"],buying_price = data["bp"], selling_price = data["sp"])
+            new_product = Product(name = data["name"],buying_price = data["buying_price"], selling_price = data["selling_price"])
             db.session.add(new_product)
             db.session.commit()
             return jsonify(data), 201
@@ -47,7 +120,12 @@ def products():
 
 
 @app.route("/api/sales", methods=["GET", "POST"])
+@jwt_required()
 def sales():
+
+    email = get_jwt_identity()
+    print("Email ----", email)
+
     if request.method == "GET":
         sales_list = Sale.query.all()
         sales_data = []
