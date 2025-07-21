@@ -4,9 +4,17 @@ from datetime import datetime
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://4d7153c730323d0f8395a2016fa65653@o4509707452809216.ingest.us.sentry.io/4509707545346048",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 
 CORS(app)
-app.config["JWT_SECRET_KEY"]= 
+app.config["JWT_SECRET_KEY"]= ""
 jwt = JWTManager(app)
 
 @app.route("/")
