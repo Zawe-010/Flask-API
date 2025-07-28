@@ -4,6 +4,7 @@ from datetime import datetime
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from sqlalchemy import text
 import sentry_sdk
 
 sentry_sdk.init(
@@ -180,6 +181,141 @@ def sales():
     else:
         error = {"error": "Method not allowed"}
         return jsonify(error), 405
+    
+
+@app.route("/api/dashboard", methods=["GET"])
+@jwt_required()
+def dashboard():
+    email = get_jwt_identity()
+    print("Email (dashboard) ===", email)
+
+    # Query: Profit per product
+    profit_product = db.session.execute(text("""
+        SELECT p.name, 
+                SUM((p.selling_price - p.buying_price) * s.quantity) AS profit
+        FROM sales s
+        JOIN products p ON s.pid = p.id
+        GROUP BY p.id
+    """)).fetchall()
+
+    # Query: Sales per day
+    sales_day = db.session.execute(text("""
+        SELECT DATE(s.created_at) AS date,
+               SUM(p.selling_price * s.quantity) AS sales
+        FROM sales s
+        JOIN products p ON s.pid = p.id
+        GROUP BY date
+        ORDER BY date
+    """)).fetchall()
+
+    # Function to generate colors dynamically
+    def generate_colors(n):
+        colors = []
+        for i in range(n):
+            hue = int(360 * i / n)  # evenly space hues
+            colors.append(f"hsl({hue}, 70%, 50%)")
+        return colors
+    
+
+     # Format for frontend
+    products_name = [row[0] for row in profit_product]
+
+    products_sales = [float(row[1]) for row in profit_product]
+
+    # Generate as many colors as products
+    products_colour = generate_colors(len(profit_product))
+
+    # Format sales per day
+    dates = [row[0].strftime("%Y-%m-%d") for row in sales_day]
+    sales = [float(row[1]) for row in sales_day]
+    
+    data = {
+    "profit_per_product": {
+        "products_name": products_name,
+        "products_sales": products_sales,
+        "products_colour": products_colour
+    },
+    "sales_per_day": {
+        "dates": dates,
+        "sales": sales
+    }
+}
+
+    return jsonify(data), 200
+
+
+    # Query: Profit per product
+    # profit_product = db.session.execute(text("""
+    #     SELECT p.name, 
+    #            SUM((p.selling_price - p.buying_price) * s.quantity) AS profit
+    #     FROM sales s
+    #     JOIN products p ON s.pid = p.id
+    #     GROUP BY p.id
+    # """)).fetchall()
+
+    # Query: Sales per product
+    # sales_product = db.session.execute(text("""
+    #     SELECT p.name, 
+    #            SUM(s.quantity * p.selling_price) AS sales
+    #     FROM sales s
+    #     JOIN products p ON s.pid = p.id
+    #     GROUP BY p.id
+    # """)).fetchall()
+
+    # Query: Profit per day
+    # profit_day = db.session.execute(text("""
+    #     SELECT DATE(s.created_at) AS date,
+    #            SUM((p.selling_price - p.buying_price) * s.quantity) AS profit
+    #     FROM sales s
+    #     JOIN products p ON s.pid = p.id
+    #     GROUP BY date
+    #     ORDER BY date
+    # """)).fetchall()
+
+    # Query: Sales per day
+    # sales_day = db.session.execute(text("""
+    #     SELECT DATE(s.created_at) AS date,
+    #            SUM(p.selling_price * s.quantity) AS sales
+    #     FROM sales s
+    #     JOIN products p ON s.pid = p.id
+    #     GROUP BY date
+    #     ORDER BY date
+    # """)).fetchall()
+
+
+    # Format for frontend
+    products_name = [row[0] for row in profit_product]
+
+    products_sales = [float(dict(sales_product).get(row[0], 0)) for row in profit_product]
+
+    products_colour = ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"]
+    
+    data = {"products_name": products_name, "products_sales": products_sales, "products_colour": products_colour}
+
+    return jsonify(data), 200
+
+    # products = [
+    #     {
+    #         "name": row[0],
+    #         "sales": float(dict(sales_product).get(row[0], 0)),
+    #         "profit": float(row[1] or 0)
+    #     }
+    #     for row in profit_product
+    # ]
+
+    daily = []
+    for pd, sd in zip(profit_day, sales_day):
+        daily.append({
+            "date": str(pd[0]),
+            "profit": float(pd[1] or 0),
+            "sales": float(sd[1] or 0)
+        })
+
+    return jsonify({
+        "products_name": products_name,
+        "products_sale": products_sales
+        # "daily": daily
+    }), 200
 
 
 if __name__ == "__main__":
