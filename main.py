@@ -21,7 +21,11 @@ jwt = JWTManager(app)
 
 @app.route("/")
 def hello_world():
+<<<<<<< HEAD
     res = {"Flask-API Develop ":"1.0"}
+=======
+    res = {"Flask-API Develop":"1.0"}
+>>>>>>> 19a3c8893799e53e2b49337268b88aba9b915b05
     return jsonify(res), 200
 
 
