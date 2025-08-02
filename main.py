@@ -5,22 +5,23 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import text
-import sentry_sdk
+# import sentry_sdk
 
-sentry_sdk.init(
-    dsn="https://4d7153c730323d0f8395a2016fa65653@o4509707452809216.ingest.us.sentry.io/4509707545346048",
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-    send_default_pii=True,
-)
+# sentry_sdk.init(
+#     dsn="https://4d7153c730323d0f8395a2016fa65653@o4509707452809216.ingest.us.sentry.io/4509707545346048",
+#     # Add data like request headers and IP for users,
+#     # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+#     send_default_pii=True,
+# )
 
 CORS(app)
 app.config["JWT_SECRET_KEY"]= ""
+# app.config["TESTING"] = True
 jwt = JWTManager(app)
 
 @app.route("/")
 def hello_world():
-    res = {"Flask-API":"1.0"}
+    res = {"Flask-API Develop ":"1.0"}
     return jsonify(res), 200
 
 
@@ -93,7 +94,7 @@ def list_users():
 def products():
 
     email = get_jwt_identity()
-    print("Email =====", email)
+    # print("Email =====", email)
 
     if request.method == "GET":
         products_list = Product.query.all()
@@ -133,7 +134,7 @@ def products():
 def sales():
 
     email = get_jwt_identity()
-    print("Email ----", email)
+    # print("Email ----", email)
 
     if request.method == "GET":
         sales_list = Sale.query.all()
@@ -187,7 +188,7 @@ def sales():
 @jwt_required()
 def dashboard():
     email = get_jwt_identity()
-    print("Email (dashboard) ===", email)
+    # print("Email (dashboard) ===", email)
 
     # Query: Profit per product
     profit_product = db.session.execute(text("""
