@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
-from dbservice import Product, Sale, db, app, User
+from dbservice import Product, Sale, db, app, User, Payment
 from datetime import datetime
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import text
+import json
+from mpesa import make_stk_push
 # import sentry_sdk
 
 # sentry_sdk.init(
@@ -15,7 +17,7 @@ from sqlalchemy import text
 # )
 
 CORS(app)
-app.config["JWT_SECRET_KEY"]= ""
+app.config["JWT_SECRET_KEY"]= "JBL@123"
 # app.config["TESTING"] = True
 jwt = JWTManager(app)
 
@@ -245,6 +247,79 @@ def dashboard():
     return jsonify(data), 200
 
 
+# TASK
+    # Create a SQLAlchemy Model with fields - id, sale_id, mrid, crid, amount, trns_code, created_at
+    # GET request ONLY to get payments
+@app.route("/api/payments", methods=["GET"])
+@jwt_required()
+def payments():
+    if request.method == "GET":
+        payments_list = Payment.query.all()
+        payments_data = []
+        for payment in payments_list:
+            payment_info = {
+                'id': payment.id,
+                'sale_id': payment.sale_id,
+                'mrid' : payment.mrid,
+                'crid' : payment.crid,
+                'amount': payment.amount,
+                'trans_code': payment.trans_code,
+                'created_at': payment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            payments_data.append(payment_info)
+        return jsonify(payments_data), 200
+    else:
+        return jsonify({"error": "Method not allowed"}), 405
+
+
+@app.route("/api/stkpush", methods = ["POST"])
+@jwt_required()
+def stkpush():
+    # Get data from vue app to send STK Push TO M-Pesa
+    data = request.get_json()
+    # Store the mrid, crid and sale_id
+    if "amount" not in data.keys() or "phone_number" not in data.keys() or "sale_id" not in data.keys():
+        error = {"error" : "Invalid keys"}
+        return jsonify(error), 403
+    res =  make_stk_push(data["amount"], data["phone_number"], data["sale_id"])
+    mrid = res["MerchantRequestID"]
+    crid = res["CheckoutRequestID"]
+    sale_id = data["sale_id"]
+    # Create a record in payments table here
+    print("Data -----", mrid, crid, sale_id)
+    pay = Payment(mrid=mrid, crid=crid, sale_id=sale_id)
+    db.session.add(pay)
+    db.session.commit()
+    return json.dumps(res)
+
+
+@app.route("/api/callback", methods = ["GET", "POST"])
+def mpesa_callback():
+    # Handle M-Pesa call back.
+    data = request.get_json()
+   
+    print("STK DATA----------", data )
+    mrid = data['Body']['stkCallback']["MerchantRequestID"]
+    crid = data['Body']['stkCallback']["CheckoutRequestID"]
+
+    # Filter your payments table to get the record stored during callback by mrid, crid
+    payment = Payment.query.filter_by(mrid=mrid, crid=crid).first()
+
+    if int(data['Body']['stkCallback']['ResultCode']) ==0:
+       trans_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
+       amount = data['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
+       payment.trans_code = trans_code
+       payment.amount = amount
+       db.session.commit()
+       # phone_paid = data['Body']['stkCallback']['Item'][-1]['Value']
+    else:
+        pass
+    
+    return jsonify({"success" : "Callback received"}), 200
+   
+
+
+
     # Query: Profit per product
     # profit_product = db.session.execute(text("""
     #     SELECT p.name, 
@@ -285,15 +360,15 @@ def dashboard():
 
 
     # Format for frontend
-    products_name = [row[0] for row in profit_product]
+    # products_name = [row[0] for row in profit_product]
 
-    products_sales = [float(dict(sales_product).get(row[0], 0)) for row in profit_product]
+    # products_sales = [float(dict(sales_product).get(row[0], 0)) for row in profit_product]
 
-    products_colour = ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"]
+    # products_colour = ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"]
     
-    data = {"products_name": products_name, "products_sales": products_sales, "products_colour": products_colour}
+    # data = {"products_name": products_name, "products_sales": products_sales, "products_colour": products_colour}
 
-    return jsonify(data), 200
+    # return jsonify(data), 200
 
     # products = [
     #     {
@@ -304,19 +379,19 @@ def dashboard():
     #     for row in profit_product
     # ]
 
-    daily = []
-    for pd, sd in zip(profit_day, sales_day):
-        daily.append({
-            "date": str(pd[0]),
-            "profit": float(pd[1] or 0),
-            "sales": float(sd[1] or 0)
-        })
+    # daily = []
+    # for pd, sd in zip(profit_day, sales_day):
+    #     daily.append({
+    #         "date": str(pd[0]),
+    #         "profit": float(pd[1] or 0),
+    #         "sales": float(sd[1] or 0)
+    #     })
 
-    return jsonify({
-        "products_name": products_name,
-        "products_sale": products_sales
-        # "daily": daily
-    }), 200
+    # return jsonify({
+    #     "products_name": products_name,
+    #     "products_sale": products_sales
+    #     # "daily": daily
+    # }), 200
 
 
 if __name__ == "__main__":

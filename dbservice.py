@@ -6,10 +6,12 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Set up the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/flask_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Zawadi%402006#@localhost:5432/flask_api'
 
 # Disables events / tracks objects changes
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_ECHO'] = True
+
 
 # Bind sqlalchemy to our flask application
 db = SQLAlchemy(app)
@@ -41,4 +43,13 @@ class User(db.Model):
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
 
-
+# Payment model
+class Payment(db.Model):
+    __tablename__ = 'payments'
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, nullable=False)
+    mrid = db.Column(db.String(100), nullable=False)
+    crid = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=True)
+    trans_code = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
