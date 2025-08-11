@@ -273,7 +273,6 @@ def payments():
 
 
 @app.route("/api/stkpush", methods = ["POST"])
-@jwt_required()
 def stkpush():
     # Get data from vue app to send STK Push TO M-Pesa
     data = request.get_json()
@@ -285,11 +284,12 @@ def stkpush():
     mrid = res["MerchantRequestID"]
     crid = res["CheckoutRequestID"]
     sale_id = data["sale_id"]
+
     # Create a record in payments table here
-    print("Data -----", mrid, crid, sale_id)
     pay = Payment(mrid=mrid, crid=crid, sale_id=sale_id)
     db.session.add(pay)
     db.session.commit()
+
     return json.dumps(res)
 
 

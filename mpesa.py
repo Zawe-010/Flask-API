@@ -47,5 +47,5 @@ def make_stk_push(amount, phone, sale_id):
     response_data = response.json()
     return response_data
 
-# print(make_stk_push(1, "254722370523"))
+
 
