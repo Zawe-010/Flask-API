@@ -134,19 +134,22 @@ def products():
 @app.route("/api/sales", methods=["GET", "POST"])
 @jwt_required()
 def sales():
-
-    email = get_jwt_identity()
-    # print("Email ----", email)
-
-    if request.method == "GET":
-        sales_list = Sale.query.all()
+    email = get_jwt_identity()# print("Email ----", email)
+    if request.method == "GET": 
+        sales_list = db.session.query(
+        Sale.id.label('sale_id'),
+        Product.name.label('product_name'),
+        Product.selling_price.label('product_sp'),
+        Sale.quantity.label('sale_quantity'),
+        Sale.created_at
+        ).join(Product, Sale.pid == Product.id).all()
+        print("Sale list ------", sales_list)
         sales_data = []
         for sale in sales_list:
             sale_info = {
-                'id': sale.id,
-                'pid': sale.pid,
-                'quantity': sale.quantity,
-                'created_at': sale.created_at
+                'sale_id': sale.sale_id,'product_name': sale.product_name,
+                'product_sp' : sale.product_sp,'sale_quantity' : sale.sale_quantity,
+                'amount': int(sale.sale_quantity * sale.product_sp),'created_at': sale.created_at
             }
             sales_data.append(sale_info)
         return jsonify(sales_data), 200
