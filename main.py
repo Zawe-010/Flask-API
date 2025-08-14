@@ -140,15 +140,17 @@ def sales():
         Sale.id.label('sale_id'),
         Product.name.label('product_name'),
         Product.selling_price.label('product_sp'),
-        Sale.quantity.label('sale_quantity'),
+        Sale.quantity.label('sale_quantity'), 
+        Payment.trans_code.label('trans_code'),
         Sale.created_at
-        ).join(Product, Sale.pid == Product.id).all()
+        ).join(Product, Sale.pid == Product.id).outerjoin(Payment, Sale.id == Payment.sale_id).all()
         print("Sale list ------", sales_list)
         sales_data = []
         for sale in sales_list:
             sale_info = {
                 'sale_id': sale.sale_id,'product_name': sale.product_name,
-                'product_sp' : sale.product_sp,'sale_quantity' : sale.sale_quantity,
+                'product_sp' : sale.product_sp,'sale_quantity' : sale.sale_quantity, 
+                'trans_code' : sale.trans_code,
                 'amount': int(sale.sale_quantity * sale.product_sp),'created_at': sale.created_at
             }
             sales_data.append(sale_info)
@@ -320,7 +322,11 @@ def mpesa_callback():
     
     return jsonify({"success" : "Callback received"}), 200
    
-
+@app.route("/api/checker/<sale_id>")
+def checker(sale_id):
+    payment = Payment.query.filter_by(sale_id=sale_id).first()
+    return jsonify({"trans_code" : payment.trans_code}), 200
+    
 
 
     # Query: Profit per product
