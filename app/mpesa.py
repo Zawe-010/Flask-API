@@ -10,7 +10,7 @@ pass_key = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
 token_api = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 push_api = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
 stk_push_query_api = "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query"
-callback_url = "https://1e870b926f35.ngrok-free.app/api/callback"
+callback_url = "https://50d07ae5aa57.ngrok-free.app/api/callback"
 headers = {}
 
 def get_mpesa_access_token():
@@ -48,5 +48,5 @@ def make_stk_push(amount, phone, sale_id):
     return response_data
 
 
-
+# print(make_stk_push(1, "254722370523"))
 

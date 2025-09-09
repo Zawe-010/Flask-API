@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Set up the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/flask_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Zawadi%402006#@localhost:5432/flask_api'
 
 # Disables events / tracks objects changes
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
