@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 # Set up the database connection
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Zawadi%402006#@localhost:5432/flask_api'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/flask_api'
 basedir = os.path.abspath(os.path.dirname(__file__))
 print("basedir ------", basedir)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database', 'flask_api.db')
