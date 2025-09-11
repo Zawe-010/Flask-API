@@ -1,12 +1,18 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from datetime import datetime
+import os
 
 # Initialize the flask application
 app = Flask(__name__)
 
 # Set up the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:@localhost:5432/flask_api'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Zawadi%402006#@localhost:5432/flask_api'
+basedir = os.path.abspath(os.path.dirname(__file__))
+print("basedir ------", basedir)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database', 'flask_api.db')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/flask_api.db'
+
 
 # Disables events / tracks objects changes
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
@@ -53,3 +59,7 @@ class Payment(db.Model):
     amount = db.Column(db.Float, nullable=True)
     trans_code = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# docker run -v c:/Users/PC/OneDrive/Flask-API/app:/app/database/database.db -p 127.0.0.1:5000:80 -t flask-api
+# docker run -v /home/Flask-API/app/database:/app/database/database.db -p 127.0.0.1:5000:80 -t flask-api

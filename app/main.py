@@ -17,7 +17,7 @@ from mpesa import make_stk_push
 # )
 
 CORS(app)
-app.config["JWT_SECRET_KEY"]= ""
+app.config["JWT_SECRET_KEY"]= "JBL@123"
 # app.config["TESTING"] = True
 jwt = JWTManager(app)
 
