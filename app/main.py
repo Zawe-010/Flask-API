@@ -16,8 +16,8 @@ from mpesa import make_stk_push
 #     send_default_pii=True,
 # )
 
-CORS(app)
-app.config["JWT_SECRET_KEY"]= ""
+CORS(app, origins=["http://64.226.85.4:8000"])
+app.config["JWT_SECRET_KEY"]= "JBL@123"
 # app.config["TESTING"] = True
 jwt = JWTManager(app)
 
