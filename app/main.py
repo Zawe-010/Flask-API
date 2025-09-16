@@ -21,6 +21,11 @@ app.config["JWT_SECRET_KEY"]= "JBL@123"
 # app.config["TESTING"] = True
 jwt = JWTManager(app)
 
+# Create tables before the first HTTP request
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
 @app.route("/")
 def hello_world():
     res = {"Flask-API Develop ":"1.0"}
@@ -326,8 +331,6 @@ def mpesa_callback():
 def checker(sale_id):
     payment = Payment.query.filter_by(sale_id=sale_id).first()
     return jsonify({"trans_code" : payment.trans_code}), 200
-    
-
 
     # Query: Profit per product
     # profit_product = db.session.execute(text("""
@@ -403,7 +406,7 @@ def checker(sale_id):
     # }), 200
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     with app.app_context():
+#         db.create_all()
+#     app.run(debug=True)
