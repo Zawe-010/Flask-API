@@ -22,7 +22,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
 app.config["JWT_SECRET_KEY"]= "JBL@123"
-CORS(app, origins=["http://64.226.85.4:8000"])
+CORS(app, resources={r"/*": {"origins": "http://64.226.85.4:8000"}})
 
 # Set up the database connection
 # CREATE USER myduka_user WITH PASSWORD ''Zawadi06zara';
