@@ -12,7 +12,7 @@ app = Flask(__name__)
 # CREATE USER myduka_user WITH PASSWORD ''Zawadi06zara';
 # GRANT CONNECT ON DATABASE myduka_api TO myduka_user;
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://flask_api_user:Zawadi06zara@172.17.0.1/:5432/flask_api'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://flask_api_user:Zawadi06zara@172.17.0.1:5432/flask_api'
 # CREATE USER flask_api_user WITH PASSWORD 'Zawadi06zara';
 # GRANT ALL PRIVILEGES ON DATABASE flask_api TO flask_api_user;
 
