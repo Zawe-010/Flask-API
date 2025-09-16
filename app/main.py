@@ -1,12 +1,13 @@
-from flask import Flask, jsonify, request
-from dbservice import Product, Sale, db, app, User, Payment
+from flask import jsonify, request
+from dbservice import Product, Sale, User, Payment
 from datetime import datetime
-from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy import text
 import json
 from mpesa import make_stk_push
+from extensions import app, db
+
 # import sentry_sdk
 
 # sentry_sdk.init(
@@ -16,14 +17,13 @@ from mpesa import make_stk_push
 #     send_default_pii=True,
 # )
 
-CORS(app, origins=["http://64.226.85.4:8000"])
-app.config["JWT_SECRET_KEY"]= "JBL@123"
+
 # app.config["TESTING"] = True
 jwt = JWTManager(app)
-
-# Create tables before the first HTTP request
-@app.before_first_request
+    
+@app.before_request
 def create_tables():
+    print("📦 Creating all tables before first request...")
     db.create_all()
 
 @app.route("/")
@@ -406,7 +406,5 @@ def checker(sale_id):
     # }), 200
 
 
-# if __name__ == "__main__":
-#     with app.app_context():
-#         db.create_all()
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
