@@ -12,8 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myduka_user:Zawadi%402006#
 # CREATE USER myduka_user WITH PASSWORD 'Zawadi%402006#';
 # GRANT CONNECT ON DATABASE myduka_api TO myduka_user;
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-print("basedir ------", basedir)
+# basedir = os.path.abspath(os.path.dirname(__file__))
+# print("basedir ------", basedir)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database', 'flask_api.db')
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/flask_api.db'
 
