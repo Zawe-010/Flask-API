@@ -58,7 +58,18 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"message": "User registered successfully"}), 201
+    # Generate token after registration
+    token = create_access_token(identity=new_user.email)
+
+    return jsonify({
+        "message": "User registered successfully",
+        "token": token,
+        "user": {
+            "id": new_user.id,
+            "full_name": new_user.full_name,
+            "email": new_user.email
+        }
+    }), 201
 
 
 @app.route("/login", methods=["POST"])
